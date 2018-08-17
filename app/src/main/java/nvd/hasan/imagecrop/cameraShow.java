@@ -51,7 +51,7 @@ public class cameraShow extends AppCompatActivity {
                 bmp = ByteArrayToBitmap(jpeg);
                 File path = savebitmap(bmp);
                 Log.d("arr", String.valueOf(path));
-                Intent in = new Intent(cameraShow.this, ImagePreview.class);
+                Intent in = new Intent(cameraShow.this, CanvasDraw.class);
                 in.putExtra("path", path.toString());
                 startActivity(in);
             }

@@ -23,7 +23,8 @@
             </intent-filter>
         </activity>
         <activity android:name=".cameraShow" />
-        <activity android:name=".ImagePreview"></activity>
+        <activity android:name=".ImagePreview" />
+        <activity android:name=".CanvasDraw"></activity>
     </application>
 
 </manifest>
