@@ -1,5 +1,6 @@
 package nvd.hasan.imagecrop;
 
+import android.content.Intent;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.graphics.Canvas;
@@ -18,10 +19,11 @@ import android.widget.Toast;
 public class CanvasDraw extends AppCompatActivity {
 
     ImageView drawingImageView;
-    Button markBtn;
+    Bitmap workingBitmap;
+    Button markBtn, backBtn;
     private Canvas canvas;
     private Paint mPaint;
-    private float mX, mY = 0;
+    private float mX = 0, mY = 0;
     private float leftx;
     private float topy;
     private float rightx;
@@ -34,14 +36,16 @@ public class CanvasDraw extends AppCompatActivity {
 
         drawingImageView = findViewById(R.id.drawingImageView);
         markBtn = findViewById(R.id.markBtn);
+        backBtn = findViewById(R.id.backBtn);
+        markBtn.setText("Nam");
 
         String path = getIntent().getStringExtra("path");
         Bitmap bmp = getImagePath(path);
 
-        Matrix matrix = new Matrix();
+        final Matrix matrix = new Matrix();
         matrix.postRotate(90);
 
-        Bitmap workingBitmap = Bitmap.createBitmap(bmp, 0, 0, bmp.getWidth(), bmp.getHeight(), matrix, true);
+        workingBitmap = Bitmap.createBitmap(bmp, 0, 0, bmp.getWidth(), bmp.getHeight(), matrix, true);
         Bitmap mutableBitmap = workingBitmap.copy(Bitmap.Config.ARGB_8888, true);
         canvas = new Canvas(mutableBitmap);
         drawingImageView.setImageBitmap(mutableBitmap);
@@ -54,10 +58,55 @@ public class CanvasDraw extends AppCompatActivity {
         markBtn.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                canvas.drawRect(leftx, topy, rightx, bottomy, mPaint);
-                String text = "x1: " + String.valueOf(leftx) + ", y1: "+ String.valueOf(topy) + ", x2: " + String.valueOf(rightx)+", y2: "+String.valueOf(bottomy);
-                Log.d("ordinate", text);
-                Toast.makeText(CanvasDraw.this, text, Toast.LENGTH_SHORT).show();
+                String btnText = (String) markBtn.getText();
+                if (btnText == "Nam"){
+//                    drawRect();
+                    String text = "x1: " + String.valueOf(leftx) + ", y1: "+ String.valueOf(topy) + ", x2: " + String.valueOf(rightx)+", y2: "+String.valueOf(bottomy);
+                    Log.d("ordinate", text);
+                    Toast.makeText(CanvasDraw.this, text, Toast.LENGTH_SHORT).show();
+                    markBtn.setText("Pita");
+                }
+
+                else if (btnText == "Pita"){
+//                    drawRect();
+                    String text = "x1: " + String.valueOf(leftx) + ", y1: "+ String.valueOf(topy) + ", x2: " + String.valueOf(rightx)+", y2: "+String.valueOf(bottomy);
+                    Log.d("ordinate", text);
+                    Toast.makeText(CanvasDraw.this, text, Toast.LENGTH_SHORT).show();
+                    markBtn.setText("Mata");
+                }
+
+                else if (btnText == "Mata"){
+//                    drawRect();
+                    String text = "x1: " + String.valueOf(leftx) + ", y1: "+ String.valueOf(topy) + ", x2: " + String.valueOf(rightx)+", y2: "+String.valueOf(bottomy);
+                    Log.d("ordinate", text);
+                    Toast.makeText(CanvasDraw.this, text, Toast.LENGTH_SHORT).show();
+                    markBtn.setText("Id");
+                }
+
+                else if (btnText == "Id"){
+//                    drawRect();
+                    String text = "x1: " + String.valueOf(leftx) + ", y1: "+ String.valueOf(topy) + ", x2: " + String.valueOf(rightx)+", y2: "+String.valueOf(bottomy);
+                    Log.d("ordinate", text);
+                    Toast.makeText(CanvasDraw.this, text, Toast.LENGTH_SHORT).show();
+                    markBtn.setText("Done");
+                }
+
+                else if (btnText == "Done"){
+                    Intent in = new Intent(CanvasDraw.this, cameraShow.class);
+                    startActivity(in);
+                }
+
+                else {
+                    Toast.makeText(CanvasDraw.this, markBtn.getText(), Toast.LENGTH_SHORT).show();
+                }
+            }
+        });
+
+        backBtn.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                Intent in = new Intent(CanvasDraw.this, cameraShow.class);
+                startActivity(in);
             }
         });
     }
@@ -67,9 +116,19 @@ public class CanvasDraw extends AppCompatActivity {
         topy = y;
     }
 
+    public void moveTouch(float x, float y){
+        mX = x  ;
+        mY = y;
+    }
+
     public void finishTouch(float x, float y){
-        rightx = x;
-        bottomy = y;
+        rightx = x * (workingBitmap.getWidth()/drawingImageView.getWidth());
+        bottomy = y * (workingBitmap.getHeight()/drawingImageView.getHeight());
+        drawRect();
+    }
+
+    public void drawRect(){
+        canvas.drawRect(leftx, topy, rightx, bottomy, mPaint);
     }
 
     @Override
@@ -81,8 +140,7 @@ public class CanvasDraw extends AppCompatActivity {
                 startTouch(x, y);
                 break;
             case MotionEvent.ACTION_MOVE:
-                mX = x;
-                mY = y;
+                moveTouch(x,y);
                 break;
             case MotionEvent.ACTION_UP:
                 finishTouch(x, y);
