@@ -7,6 +7,7 @@ import android.graphics.Canvas;
 import android.graphics.Color;
 import android.graphics.Matrix;
 import android.graphics.Paint;
+import android.support.annotation.NonNull;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.util.Log;
@@ -16,11 +17,19 @@ import android.widget.Button;
 import android.widget.ImageView;
 import android.widget.Toast;
 
+import java.util.Collection;
+import java.util.Iterator;
+import java.util.List;
+import java.util.ListIterator;
+
+import io.paperdb.Paper;
+
 public class CanvasDraw extends AppCompatActivity {
 
     ImageView drawingImageView;
     Bitmap workingBitmap;
     Button markBtn, backBtn;
+    ImageCoordinates coordinates;
     private Canvas canvas;
     private Paint mPaint;
     private float mX = 0, mY = 0;
@@ -33,6 +42,7 @@ public class CanvasDraw extends AppCompatActivity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_canvas_draw);
+        Paper.init(CanvasDraw.this);
 
         drawingImageView = findViewById(R.id.drawingImageView);
         markBtn = findViewById(R.id.markBtn);
@@ -60,36 +70,25 @@ public class CanvasDraw extends AppCompatActivity {
             public void onClick(View v) {
                 String btnText = (String) markBtn.getText();
                 if (btnText == "Nam"){
-                    drawRect();
-//                    String text = "x1: " + String.valueOf(leftx) + ", y1: "+ String.valueOf(topy) + ", x2: " + String.valueOf(rightx)+", y2: "+String.valueOf(bottomy);
-//                    Log.d("ordinate", text);
-//                    Toast.makeText(CanvasDraw.this, text, Toast.LENGTH_SHORT).show();
-                    markBtn.setText("Pita");
-                }
-
-                else if (btnText == "Pita"){
-                    drawRect();
-//                    String text = "x1: " + String.valueOf(leftx) + ", y1: "+ String.valueOf(topy) + ", x2: " + String.valueOf(rightx)+", y2: "+String.valueOf(bottomy);
-//                    Log.d("ordinate", text);
-//                    Toast.makeText(CanvasDraw.this, text, Toast.LENGTH_SHORT).show();
-                    markBtn.setText("Mata");
-                }
-
-                else if (btnText == "Mata"){
-                    drawRect();
-//                    String text = "x1: " + String.valueOf(leftx) + ", y1: "+ String.valueOf(topy) + ", x2: " + String.valueOf(rightx)+", y2: "+String.valueOf(bottomy);
-//                    Log.d("ordinate", text);
-//                    Toast.makeText(CanvasDraw.this, text, Toast.LENGTH_SHORT).show();
-                    markBtn.setText("Id");
-                }
-
-                else if (btnText == "Id"){
-                    drawRect();
-//                    String text = "x1: " + String.valueOf(leftx) + ", y1: "+ String.valueOf(topy) + ", x2: " + String.valueOf(rightx)+", y2: "+String.valueOf(bottomy);
-//                    Log.d("ordinate", text);
-//                    Toast.makeText(CanvasDraw.this, text, Toast.LENGTH_SHORT).show();
+                    drawRect("Nam");
+//                    markBtn.setText("Pita");
                     markBtn.setText("Done");
                 }
+
+//                else if (btnText == "Pita"){
+//                    drawRect("Pita");
+//                    markBtn.setText("Mata");
+//                }
+//
+//                else if (btnText == "Mata"){
+//                    drawRect("Mata");
+//                    markBtn.setText("Id");
+//                }
+//
+//                else if (btnText == "Id"){
+//                    drawRect("Id");
+//                    markBtn.setText("Done");
+//                }
 
                 else if (btnText == "Done"){
                     Intent in = new Intent(CanvasDraw.this, cameraShow.class);
@@ -126,12 +125,24 @@ public class CanvasDraw extends AppCompatActivity {
         bottomy = y * (workingBitmap.getHeight()/drawingImageView.getHeight());
     }
 
-    public void drawRect(){
-        canvas.drawRect(leftx, topy+150, rightx+mX, bottomy, mPaint);
-        String text = "x1: " + String.valueOf(leftx) + ", y1: "+ String.valueOf(topy) + ", x2: " + String.valueOf(rightx)+", y2: "+String.valueOf(bottomy);
-        Log.d("ordinate", text);
-        Toast.makeText(CanvasDraw.this, text, Toast.LENGTH_SHORT).show();
+    public void drawRect(String btnName){
+        float top_y = topy+150;
+        float right_x = rightx+mX;
+        canvas.drawRect(leftx, top_y, right_x, bottomy, mPaint);
+//        String text = "x1: " + String.valueOf(leftx) + ", y1: "+ String.valueOf(topy) + ", x2: " + String.valueOf(rightx)+", y2: "+String.valueOf(bottomy);
+//        Log.d("ordinate", text);
+//        Toast.makeText(CanvasDraw.this, text, Toast.LENGTH_SHORT).show();
+        coordinates = new ImageCoordinates(leftx, top_y, right_x, bottomy, btnName);
+        Paper.book().write("coordinates", coordinates);
+        showToast();
         leftx = topy = rightx = bottomy = mX = mY = 0;
+    }
+
+    public void showToast(){
+        coordinates = Paper.book().read("coordinates");
+        String text = "x1: " + coordinates.getLeftX() + ", y1: "+ coordinates.getTopY() + ", x2: " + coordinates.getRightX()+", y2: "+coordinates.getBottomY();
+        Log.d("ordinate", text);
+        Toast.makeText(CanvasDraw.this, text, Toast.LENGTH_LONG).show();
     }
 
     @Override
@@ -147,7 +158,8 @@ public class CanvasDraw extends AppCompatActivity {
                 break;
             case MotionEvent.ACTION_MOVE:
                 moveTouch(x - viewCoords[0], y- viewCoords[1]);
-                break;            case MotionEvent.ACTION_UP:
+                break;
+            case MotionEvent.ACTION_UP:
                 finishTouch(x - viewCoords[0] , y);
                 break;
         }

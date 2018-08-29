@@ -28,4 +28,5 @@ dependencies {
     androidTestImplementation 'com.android.support.test.espresso:espresso-core:3.0.2'
 
     implementation 'com.otaliastudios:cameraview:1.5.1'
+    implementation 'io.paperdb:paperdb:2.6'
 }
