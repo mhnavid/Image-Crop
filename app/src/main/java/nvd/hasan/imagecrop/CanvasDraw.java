@@ -17,15 +17,29 @@ import android.widget.Button;
 import android.widget.ImageView;
 import android.widget.Toast;
 
+import java.io.ByteArrayOutputStream;
+import java.io.File;
+import java.io.FileOutputStream;
+import java.io.IOException;
 import java.util.Collection;
 import java.util.Iterator;
 import java.util.List;
 import java.util.ListIterator;
 
+import api.ApiClient;
+import api.ApiInterface;
 import io.paperdb.Paper;
+import okhttp3.MediaType;
+import okhttp3.MultipartBody;
+import okhttp3.RequestBody;
+import okhttp3.ResponseBody;
+import retrofit2.Call;
+import retrofit2.Callback;
+import retrofit2.Response;
 
 public class CanvasDraw extends AppCompatActivity {
 
+    private static ApiInterface apiInterface;
     ImageView drawingImageView;
     Bitmap workingBitmap;
     Button markBtn, backBtn;
@@ -44,13 +58,15 @@ public class CanvasDraw extends AppCompatActivity {
         setContentView(R.layout.activity_canvas_draw);
         Paper.init(CanvasDraw.this);
 
+        apiInterface= ApiClient.getApiClient().create(ApiInterface.class);
+
         drawingImageView = findViewById(R.id.drawingImageView);
         markBtn = findViewById(R.id.markBtn);
         backBtn = findViewById(R.id.backBtn);
         markBtn.setText("Nam");
 
         String path = getIntent().getStringExtra("path");
-        Bitmap bmp = getImagePath(path);
+        final Bitmap bmp = getImagePath(path);
 
         final Matrix matrix = new Matrix();
         matrix.postRotate(90);
@@ -91,6 +107,7 @@ public class CanvasDraw extends AppCompatActivity {
 //                }
 
                 else if (btnText == "Done"){
+                    dataSend(workingBitmap);
                     Intent in = new Intent(CanvasDraw.this, cameraShow.class);
                     startActivity(in);
                 }
@@ -134,15 +151,56 @@ public class CanvasDraw extends AppCompatActivity {
 //        Toast.makeText(CanvasDraw.this, text, Toast.LENGTH_SHORT).show();
         coordinates = new ImageCoordinates(leftx, top_y, right_x, bottomy, btnName);
         Paper.book().write("coordinates", coordinates);
-        showToast();
         leftx = topy = rightx = bottomy = mX = mY = 0;
     }
 
-    public void showToast(){
+    public void dataSend(Bitmap bitmap){
         coordinates = Paper.book().read("coordinates");
         String text = "x1: " + coordinates.getLeftX() + ", y1: "+ coordinates.getTopY() + ", x2: " + coordinates.getRightX()+", y2: "+coordinates.getBottomY();
         Log.d("ordinate", text);
         Toast.makeText(CanvasDraw.this, text, Toast.LENGTH_LONG).show();
+        sendImageTO(getFileBitmap(bitmap), coordinates.getLeftX(), coordinates.getTopY(), coordinates.getRightX(), coordinates.getBottomY(), coordinates.getBtnName());
+    }
+
+    public void sendImageTO(File fileBit, float leftX, float topY, float rightX, float bottomY, String btnName){
+        File file = new File(fileBit.getPath());
+        RequestBody reqFile = RequestBody.create(MediaType.parse("image/*"), file);
+        MultipartBody.Part body = MultipartBody.Part.createFormData("file","test.png",reqFile);
+
+//        Call<ResponseBody> call=apiInterface.postImage(body, leftX, topY, rightX, bottomY, btnName);
+        Call<ResponseBody> call=apiInterface.postImage(body);
+        call.enqueue(new Callback<ResponseBody>() {
+            @Override
+            public void onResponse(Call<ResponseBody> call, Response<ResponseBody> response) {
+                Log.d("upload","Upload Done");
+                Log.d("upload",response.toString());
+            }
+
+            @Override
+            public void onFailure(Call<ResponseBody> call, Throwable t) {
+                Log.d("upload","Upload Error");
+            }
+        });
+    }
+
+    private File getFileBitmap(Bitmap bitmap){
+        File f = new File(getApplicationContext().getCacheDir(), "tempImg.png");
+        try {
+            f.createNewFile();
+            //Convert bitmap to byte array
+            ByteArrayOutputStream bos = new ByteArrayOutputStream();
+            bitmap.compress(Bitmap.CompressFormat.PNG, 0 /*ignored for PNG*/, bos);
+            byte[] bitmapdata = bos.toByteArray();
+
+            //write the bytes in file
+            FileOutputStream fos = new FileOutputStream(f);
+            fos.write(bitmapdata);
+            fos.flush();
+            fos.close();
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+        return f;
     }
 
     @Override
