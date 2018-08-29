@@ -165,15 +165,20 @@ public class CanvasDraw extends AppCompatActivity {
     public void sendImageTO(File fileBit, float leftX, float topY, float rightX, float bottomY, String btnName){
         File file = new File(fileBit.getPath());
         RequestBody reqFile = RequestBody.create(MediaType.parse("image/*"), file);
-        MultipartBody.Part body = MultipartBody.Part.createFormData("file","test.png",reqFile);
+        MultipartBody.Part body = MultipartBody.Part.createFormData("file","test.jpg",reqFile);
 
 //        Call<ResponseBody> call=apiInterface.postImage(body, leftX, topY, rightX, bottomY, btnName);
-        Call<ResponseBody> call=apiInterface.postImage(body);
+        Call<ResponseBody> call=apiInterface.postImage(body, "ben", leftX, topY, rightX, bottomY);
         call.enqueue(new Callback<ResponseBody>() {
             @Override
             public void onResponse(Call<ResponseBody> call, Response<ResponseBody> response) {
                 Log.d("upload","Upload Done");
-                Log.d("upload",response.toString());
+                try {
+                    Log.d("upload", String.valueOf(response.body().string()));
+                } catch (IOException e) {
+                    e.printStackTrace();
+                }
+                Toast.makeText(CanvasDraw.this, response.toString(), Toast.LENGTH_LONG).show();
             }
 
             @Override
@@ -181,15 +186,29 @@ public class CanvasDraw extends AppCompatActivity {
                 Log.d("upload","Upload Error");
             }
         });
+//        Call<ResponseBody> call = apiInterface.getToken();
+//        call.enqueue(new Callback<ResponseBody>() {
+//
+//            @Override
+//            public void onResponse(Call<ResponseBody> call, Response<ResponseBody> response) {
+//                Log.d("upload",response.toString());
+//            }
+//
+//            @Override
+//            public void onFailure(Call<ResponseBody> call, Throwable t) {
+//
+//                Log.d("upload",t.getMessage());
+//            }
+//        });
     }
 
     private File getFileBitmap(Bitmap bitmap){
-        File f = new File(getApplicationContext().getCacheDir(), "tempImg.png");
+        File f = new File(getApplicationContext().getCacheDir(), "tempImg.jpg");
         try {
             f.createNewFile();
             //Convert bitmap to byte array
             ByteArrayOutputStream bos = new ByteArrayOutputStream();
-            bitmap.compress(Bitmap.CompressFormat.PNG, 0 /*ignored for PNG*/, bos);
+            bitmap.compress(Bitmap.CompressFormat.JPEG, 100 /*ignored for PNG*/, bos);
             byte[] bitmapdata = bos.toByteArray();
 
             //write the bytes in file
