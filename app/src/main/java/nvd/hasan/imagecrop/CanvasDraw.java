@@ -17,6 +17,10 @@ import android.widget.Button;
 import android.widget.ImageView;
 import android.widget.Toast;
 
+import org.json.JSONArray;
+import org.json.JSONException;
+import org.json.JSONObject;
+
 import java.io.ByteArrayOutputStream;
 import java.io.File;
 import java.io.FileOutputStream;
@@ -51,6 +55,8 @@ public class CanvasDraw extends AppCompatActivity {
     private float topy = 0;
     private float rightx = 0;
     private float bottomy = 0;
+
+    private String responseText = "";
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -108,8 +114,6 @@ public class CanvasDraw extends AppCompatActivity {
 
                 else if (btnText == "Done"){
                     dataSend(workingBitmap);
-                    Intent in = new Intent(CanvasDraw.this, ResultShow.class);
-                    startActivity(in);
                 }
 
                 else {
@@ -168,15 +172,27 @@ public class CanvasDraw extends AppCompatActivity {
         MultipartBody.Part body = MultipartBody.Part.createFormData("file","test.jpg",reqFile);
 
 //        Call<ResponseBody> call=apiInterface.postImage(body, leftX, topY, rightX, bottomY, btnName);
-        Call<ResponseBody> call=apiInterface.postImage(body, "ben", leftX, topY, rightX, bottomY);
+        Call<ResponseBody> call=apiInterface.postImage(body, "eng+ben", leftX, topY, rightX, bottomY);
         call.enqueue(new Callback<ResponseBody>() {
             @Override
             public void onResponse(Call<ResponseBody> call, Response<ResponseBody> response) {
                 try {
-                    Log.d("upload", String.valueOf(response.body().string()));
+                    try {
+                        String resp = response.body().string();
+                        Log.d("OutPut1", resp);
+                        JSONObject jObj = new JSONObject(resp);
+                        String message = jObj.getString("message").toUpperCase();
+                        Log.d("OutPut2", message);
+                        Intent in = new Intent(CanvasDraw.this, ResultShow.class);
+                        in.putExtra("resp", message);
+                        startActivity(in);
+                    } catch (JSONException e) {
+                        e.printStackTrace();
+                    }
                 } catch (IOException e) {
                     e.printStackTrace();
                 }
+
                 Toast.makeText(CanvasDraw.this, response.toString(), Toast.LENGTH_LONG).show();
             }
 
