@@ -108,7 +108,7 @@ public class CanvasDraw extends AppCompatActivity {
 
                 else if (btnText == "Done"){
                     dataSend(workingBitmap);
-                    Intent in = new Intent(CanvasDraw.this, cameraShow.class);
+                    Intent in = new Intent(CanvasDraw.this, ResultShow.class);
                     startActivity(in);
                 }
 
@@ -172,7 +172,6 @@ public class CanvasDraw extends AppCompatActivity {
         call.enqueue(new Callback<ResponseBody>() {
             @Override
             public void onResponse(Call<ResponseBody> call, Response<ResponseBody> response) {
-                Log.d("upload","Upload Done");
                 try {
                     Log.d("upload", String.valueOf(response.body().string()));
                 } catch (IOException e) {

@@ -25,7 +25,8 @@
         </activity>
         <activity android:name=".cameraShow" />
         <activity android:name=".ImagePreview" />
-        <activity android:name=".CanvasDraw"></activity>
+        <activity android:name=".CanvasDraw" />
+        <activity android:name=".ResultShow"></activity>
     </application>
 
 </manifest>
